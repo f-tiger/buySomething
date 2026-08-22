@@ -28,6 +28,7 @@ body {
 }
 
 .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+section, main { scroll-margin-top: 76px; }
 
 /* Header */
 .site-header {
@@ -142,6 +143,7 @@ body {
 .footer-note { color: var(--text-dim); font-size: 0.82rem; max-width: 720px; }
 
 /* Modal */
+.modal-backdrop[hidden] { display: none; }
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(8, 10, 14, 0.7); backdrop-filter: blur(4px);
@@ -199,8 +201,42 @@ body {
 .calc-result .r-value.bad { color: var(--red); }
 .calc-note { margin-top: 10px; font-size: 0.75rem; color: var(--text-dim); }
 
+/* Policy strip */
+.policy-strip { background: rgba(245, 185, 66, 0.08); border-block: 1px solid rgba(245, 185, 66, 0.25); padding: 10px 0; }
+.policy-inner { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.policy-item { color: var(--text-dim); font-size: 0.82rem; }
+.policy-item strong { color: var(--gold); }
+
+/* Tier badges */
+.badge.tier-profit { color: var(--green); border-color: rgba(62, 207, 142, 0.4); }
+.badge.tier-traffic { color: #6db2ff; border-color: rgba(109, 178, 255, 0.4); }
+.badge.tier-identity { color: #d6a2ff; border-color: rgba(214, 162, 255, 0.4); }
+
+/* Lifecycle badges */
+.badge.lc-early { color: var(--green); border-color: rgba(62, 207, 142, 0.5); background: rgba(62, 207, 142, 0.08); }
+.badge.lc-growth { color: var(--gold); border-color: rgba(245, 185, 66, 0.5); background: rgba(245, 185, 66, 0.08); }
+.badge.lc-saturated { color: var(--red); border-color: rgba(255, 107, 107, 0.5); background: rgba(255, 107, 107, 0.08); }
+
+/* Price tier accents */
+.price-value.tier1688, .fact-value.tier1688 { color: var(--green); }
+.price-value.retail, .fact-value.retail { color: var(--gold); }
+.card-prices { flex-wrap: wrap; gap: 12px 16px; }
+
+/* 1688 keyword + copy */
+.cn-keyword { margin-top: 8px; }
+.cn-keyword code {
+  background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 8px; color: var(--gold); font-size: 0.9rem;
+}
+.copy-btn {
+  margin-left: 8px; padding: 4px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card); color: var(--text-dim); font-size: 0.78rem;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
 @media (max-width: 640px) {
   .main-nav { display: none; }
   .hero { padding: 56px 0 40px; }
   .hero-stats { gap: 24px; }
+  .policy-inner { flex-direction: column; gap: 6px; }
 }
