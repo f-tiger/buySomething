@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SourceRadar — Curated China Bestsellers for Western Buyers</title>
+  <meta name="description" content="Hand-picked, trend-verified Chinese bestsellers across hot product tracks — with margin math, compliance checklists, and logistics notes Alibaba won't give you.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">📡</span>
+        <span class="brand-text">Source<em>Radar</em></span>
+      </a>
+      <nav class="main-nav">
+        <a href="#picks">This Week's Picks</a>
+        <a href="#difference">Why Us</a>
+        <a href="#playbook">Buyer Playbook</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <p class="hero-kicker">Updated weekly · Curated in Shenzhen &amp; Yiwu · Built for US/EU buyers</p>
+      <h1>China's proven bestsellers,<br><span class="accent">pre-vetted for your market.</span></h1>
+      <p class="hero-sub">
+        Alibaba gives you 200,000 search results. We give you the <strong>24 products actually trending</strong>
+        across the hottest tracks right now — with the margin math, compliance checklist, and
+        seasonality read you need before wiring a deposit.
+      </p>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num" id="statCount">24</span><span class="stat-label">curated picks</span></div>
+        <div class="stat"><span class="stat-num" id="statTracks">11</span><span class="stat-label">hot tracks</span></div>
+        <div class="stat"><span class="stat-num" id="statMargin">—</span><span class="stat-label">avg. indicative margin</span></div>
+        <div class="stat"><span class="stat-num">CE·FCC·FDA</span><span class="stat-label">compliance flagged</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="difference" id="difference">
+    <div class="container">
+      <h2 class="section-title">Not another supplier directory</h2>
+      <div class="diff-grid">
+        <div class="diff-card">
+          <div class="diff-icon">🎯</div>
+          <h3>Curation over catalog</h3>
+          <p>We publish a short list, not a marketplace. Every pick already proved itself on Douyin, TikTok Shop, or Amazon BSR before it gets here.</p>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon">📊</div>
+          <h3>Decision data, not listings</h3>
+          <p>Trend score, saturation risk, seasonality window, and factory-vs-retail spread on every card — the numbers a buyer actually underwrites.</p>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon">🛃</div>
+          <h3>Compliance up front</h3>
+          <p>CE, FCC, FDA, EN71, UN38.3 — we flag what each product needs to clear US/EU customs <em>before</em> you commit, not after a seized container.</p>
+        </div>
+        <div class="diff-card">
+          <div class="diff-icon">🧮</div>
+          <h3>Margin calculator built in</h3>
+          <p>Open any product and model landed cost and profit at your order quantity in seconds. No spreadsheet required.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="picks" id="picks">
+    <div class="container">
+      <div class="picks-head">
+        <h2 class="section-title">This week's picks</h2>
+        <p class="picks-sub">Filter by track, sort by what matters to you, click any card for the full sourcing brief.</p>
+      </div>
+
+      <div class="controls">
+        <input type="search" id="searchInput" class="search" placeholder="Search products, signals, certifications…" aria-label="Search products">
+        <select id="sortSelect" class="sort" aria-label="Sort products">
+          <option value="trend">Sort: Trend score</option>
+          <option value="margin">Sort: Indicative margin</option>
+          <option value="priceAsc">Sort: Factory price ↑</option>
+          <option value="moq">Sort: Lowest MOQ</option>
+        </select>
+        <label class="lowsat-toggle">
+          <input type="checkbox" id="lowSatOnly"> Low-saturation only
+        </label>
+      </div>
+
+      <div class="chips" id="trackChips" role="tablist" aria-label="Product tracks"></div>
+
+      <div class="grid" id="productGrid"></div>
+      <p class="empty" id="emptyState" hidden>No products match — try clearing filters.</p>
+    </div>
+  </main>
+
+  <section class="playbook" id="playbook">
+    <div class="container">
+      <h2 class="section-title">Buyer playbook</h2>
+      <ol class="playbook-list">
+        <li><strong>Validate before volume.</strong> Order at MOQ, test with paid ads or a marketplace listing, and only scale SKUs with proven sell-through.</li>
+        <li><strong>Certify early.</strong> Lab testing (CE/FCC/EN71) takes 2–6 weeks. Start it with your sample order, not your bulk PO.</li>
+        <li><strong>Respect seasonality windows.</strong> Summer SKUs are bought by February; Q4 gifting SKUs by August. The calendar on each card is the buy signal.</li>
+        <li><strong>Own a backend.</strong> The best picks here have consumables — filters, brush heads, paper rolls. That's where durable margin lives.</li>
+        <li><strong>Differentiate or don't enter high-saturation tracks.</strong> Red "high saturation" badges mean you need a real angle: bundle, spec upgrade, or brand.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><span class="brand-text">Source<em>Radar</em></span> — curated China sourcing intelligence.</p>
+      <p class="footer-note">Prices are indicative EXW references gathered from supplier quotes and public listings; always confirm with your supplier. Not affiliated with any marketplace.</p>
+    </div>
+  </footer>
+
+  <!-- Product detail modal -->
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
