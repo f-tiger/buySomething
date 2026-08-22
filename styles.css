@@ -234,6 +234,40 @@ section, main { scroll-margin-top: 76px; }
 }
 .copy-btn:hover { color: var(--text); border-color: var(--text-dim); }
 
+/* Live trends */
+.trends-status { color: var(--text-dim); font-size: 0.8rem; margin: -14px 0 20px; }
+.badge.mo-rising { color: var(--green); border-color: rgba(62, 207, 142, 0.5); background: rgba(62, 207, 142, 0.08); }
+.badge.mo-stable { color: var(--text-dim); }
+.badge.mo-cooling { color: var(--red); border-color: rgba(255, 107, 107, 0.5); background: rgba(255, 107, 107, 0.08); }
+.spark-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.spark-row.mo-rising .spark { color: var(--green); }
+.spark-row.mo-stable .spark { color: var(--text-dim); }
+.spark-row.mo-cooling .spark { color: var(--red); }
+.spark { max-width: 100%; }
+.spark-meta { display: flex; flex-direction: column; gap: 6px; }
+.spark-note { color: var(--text-dim); font-size: 0.8rem; }
+.ext-link { color: var(--gold); text-decoration: none; }
+.ext-link:hover { text-decoration: underline; }
+
+/* Pricing */
+.pricing { padding: 56px 0; }
+.price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 24px; }
+.price-card {
+  position: relative; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 12px;
+}
+.price-card.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+.price-flag {
+  position: absolute; top: -11px; left: 20px; background: var(--accent); color: #fff;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 999px;
+}
+.price-card h3 { font-size: 1.1rem; }
+.price-tag { font-size: 2rem; font-weight: 800; color: var(--gold); }
+.price-tag span { font-size: 0.9rem; font-weight: 500; color: var(--text-dim); }
+.price-card ul { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--text-dim); font-size: 0.9rem; }
+.price-note { margin-top: auto; color: var(--text-dim); font-size: 0.8rem; border-top: 1px dashed var(--line); padding-top: 10px; }
+
 @media (max-width: 640px) {
   .main-nav { display: none; }
   .hero { padding: 56px 0 40px; }

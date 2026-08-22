@@ -12,6 +12,48 @@
 
   let activeTrack = "All Tracks";
 
+  // Live Google Trends data (written daily by tools/fetch_trends.py via CI).
+  // Absent file → graceful fallback to editorial grades only.
+  let TRENDS = null;
+  fetch("trends.json")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((t) => {
+      if (!t || !t.products) return;
+      TRENDS = t;
+      const el = document.getElementById("trendsUpdated");
+      if (el) el.textContent = "Live Google Trends: updated " + t.updated.slice(0, 10);
+      renderGrid();
+    })
+    .catch(() => {});
+
+  const MOMENTUM_LABELS = {
+    rising: { arrow: "↗", cls: "mo-rising", word: "Rising" },
+    stable: { arrow: "→", cls: "mo-stable", word: "Stable" },
+    cooling: { arrow: "↘", cls: "mo-cooling", word: "Cooling" }
+  };
+  const trendOf = (p) => (TRENDS && TRENDS.products[p.id]) || null;
+  const momentumBadge = (p) => {
+    const t = trendOf(p);
+    if (!t || !MOMENTUM_LABELS[t.label]) return "";
+    const m = MOMENTUM_LABELS[t.label];
+    const pct = t.momentum != null ? (t.momentum > 0 ? "+" : "") + Math.round(t.momentum * 100) + "%" : "";
+    return `<span class="badge ${m.cls}" title="Google Trends momentum, last 14d vs prior 60d (${t.geo})">${m.arrow} ${m.word} ${pct}</span>`;
+  };
+  const sparkline = (points) => {
+    if (!points || points.length < 2) return "";
+    const w = 280, h = 48, max = Math.max(...points, 1);
+    const pts = points.map((v, i) => `${((i / (points.length - 1)) * w).toFixed(1)},${(h - (v / max) * (h - 4) - 2).toFixed(1)}`).join(" ");
+    return `<svg class="spark" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="90-day search interest">
+      <polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="${pts.split(" ").pop().split(",")[0]}" cy="${pts.split(" ").pop().split(",")[1]}" r="3" fill="currentColor"/>
+    </svg>`;
+  };
+  const trendsUrl = (p) => {
+    const t = trendOf(p);
+    const geo = t ? t.geo : "US";
+    return `https://trends.google.com/trends/explore?date=today%203-m&geo=${geo}&q=${encodeURIComponent(p.trendQuery)}`;
+  };
+
   const mid = (range) => (range[0] + range[1]) / 2;
   const money = (n) => "$" + (n >= 100 ? Math.round(n) : n.toFixed(2).replace(/\.00$/, ""));
   const rangeStr = (r) => money(r[0]) + "–" + money(r[1]);
@@ -89,6 +131,7 @@
         </div>
         <div class="card-badges">
           <span class="badge ${lc.cls}">${lc.label}</span>
+          ${momentumBadge(p)}
           <span class="badge ${tier.cls}">${tier.label}</span>
           <span class="badge">${p.compliance.difficulty === "high" ? "🛃 compliance moat" : p.compliance.difficulty === "medium" ? "🛃 medium certs" : "🛃 easy certs"}</span>
         </div>`;
@@ -124,6 +167,24 @@
         <p>${p.chinaSignal}</p>
         <p class="cn-keyword">1688 search term: <code>${p.cnKeyword}</code>
           <button class="copy-btn" data-copy="${p.cnKeyword}">Copy</button></p>
+      </div>
+
+      <div class="modal-section">
+        <h4>📊 Live demand check — Google Trends</h4>
+        ${(() => {
+          const t = trendOf(p);
+          if (t) {
+            const m = MOMENTUM_LABELS[t.label] || { arrow: "•", cls: "", word: "—" };
+            const pct = t.momentum != null ? (t.momentum > 0 ? "+" : "") + Math.round(t.momentum * 100) + "%" : "n/a";
+            return `<div class="spark-row ${m.cls}">${sparkline(t.points)}
+              <div class="spark-meta">
+                <span class="badge ${m.cls}">${m.arrow} ${m.word} ${pct}</span>
+                <span class="spark-note">last 14d vs prior 60d · geo ${t.geo} · updated ${TRENDS.updated.slice(0, 10)}</span>
+              </div></div>`;
+          }
+          return `<p class="spark-note">Live trend data pending first pipeline run — editorial grade only for now.</p>`;
+        })()}
+        <p class="spark-note">Verify it yourself: <a class="ext-link" href="${trendsUrl(p)}" target="_blank" rel="noopener">"${p.trendQuery}" on Google Trends ↗</a></p>
       </div>
 
       <div class="modal-section">
