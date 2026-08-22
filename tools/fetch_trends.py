@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Daily Google Trends refresh for SourceRadar.
 
-Reads each product's trendQuery from data.js, pulls 90-day interest-over-time
-from Google Trends (via pytrends), computes a momentum score, and writes
-trends.json for the site to consume.
+Uses trendspy (pytrends is archived/dead as of 2025-04 and 429s on first call).
+Reads each product's trendQuery from data.js, pulls 90-day interest-over-time,
+computes a momentum score, and writes trends.json for the site to consume.
 
 Momentum = mean(last 14 days) / mean(prior 60 days) - 1
   >= +0.15 → rising, <= -0.15 → cooling, else stable.
 
-Designed to run in GitHub Actions. Resilient by construction:
-- per-keyword retry with backoff on 429/errors
-- partial failures keep the previous run's entry for that product
-- the site treats a missing/stale file as "no live data" and falls back
-  to editorial grades, so a failed run never breaks the page.
+Defensible-pipeline rules (docs/research/07-legal.md):
+- public data only, no login, no captcha-bypass, no bot-identity spoofing
+- >=30s between keyword requests, exponential backoff on 429 (60s → 10min)
+- keep-last-good on per-keyword failure; a fully failed run leaves the
+  previous trends.json untouched, so the site degrades to editorial grades.
 """
 import json
 import os
@@ -25,17 +25,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_JS = os.path.join(ROOT, "data.js")
 OUT = os.path.join(ROOT, "trends.json")
 
-# Products whose demand is EU-centric are measured in their home market.
-GEO_OVERRIDES = {"solar-mount": "DE", "smart-plug": "DE"}
+# EU/AU-centric products are measured in their home market.
+GEO_OVERRIDES = {"solar-storage": "DE", "smart-plug": "DE"}
 DEFAULT_GEO = "US"
 TIMEFRAME = "today 3-m"
-SPARK_POINTS = 30  # downsampled points served to the front-end
+SPARK_POINTS = 30
+REQUEST_GAP_S = 30
+BACKOFF_S = [60, 180, 600]
 
 
 def read_queries():
     src = open(DATA_JS, encoding="utf-8").read()
     pairs = re.findall(r'id: "([^"]+)",.*?trendQuery: "([^"]+)"', src, re.S)
-    # re.S makes .*? span products only because id comes first in each literal
     seen = {}
     for pid, q in pairs:
         if pid not in seen:
@@ -71,26 +72,41 @@ def label(m):
     return "stable"
 
 
-def fetch_all(queries, previous):
-    from pytrends.request import TrendReq
+def fetch_series(tr, query, geo):
+    for attempt, wait in enumerate([0] + BACKOFF_S):
+        if wait:
+            print(f"  backoff {wait}s (attempt {attempt + 1})", file=sys.stderr)
+            time.sleep(wait)
+        try:
+            df = tr.interest_over_time([query], timeframe=TIMEFRAME, geo=geo)
+            if df is not None and len(df) > 0:
+                col = query if query in getattr(df, "columns", []) else None
+                values = df[col] if col else df[df.columns[0]]
+                return [float(v) for v in list(values)]
+            return None
+        except Exception as e:  # noqa: BLE001 — 429s and transport errors alike
+            print(f"  fetch error: {e}", file=sys.stderr)
+    return None
 
+
+def main():
+    from trendspy import Trends
+
+    queries = read_queries()
+    print(f"{len(queries)} trend queries found")
+    previous = {}
+    if os.path.exists(OUT):
+        try:
+            previous = json.load(open(OUT, encoding="utf-8")).get("products", {})
+        except Exception:
+            pass
+
+    tr = Trends()
     products = {}
     failures = []
     for i, (pid, query) in enumerate(queries.items()):
         geo = GEO_OVERRIDES.get(pid, DEFAULT_GEO)
-        series = None
-        for attempt in range(3):
-            try:
-                pt = TrendReq(hl="en-US", tz=0, timeout=(10, 30))
-                pt.build_payload([query], timeframe=TIMEFRAME, geo=geo)
-                df = pt.interest_over_time()
-                if df is not None and not df.empty:
-                    series = [float(v) for v in df[query].tolist()]
-                break
-            except Exception as e:  # noqa: BLE001 — 429s and transport errors alike
-                wait = 20 * (attempt + 1)
-                print(f"[{pid}] attempt {attempt + 1} failed: {e}; retrying in {wait}s", file=sys.stderr)
-                time.sleep(wait)
+        series = fetch_series(tr, query, geo)
         if series:
             m = momentum(series)
             products[pid] = {
@@ -102,33 +118,23 @@ def fetch_all(queries, previous):
             }
         else:
             failures.append(pid)
-            if pid in previous:  # keep last known-good data rather than dropping it
+            if pid in previous:
                 products[pid] = previous[pid]
-        time.sleep(8)  # stay well under Trends rate limits
         print(f"[{i + 1}/{len(queries)}] {pid}: {'ok' if series else 'kept-previous' if pid in products else 'no-data'}")
-    return products, failures
+        time.sleep(REQUEST_GAP_S)
 
-
-def main():
-    queries = read_queries()
-    print(f"{len(queries)} trend queries found")
-    previous = {}
-    if os.path.exists(OUT):
-        try:
-            previous = json.load(open(OUT, encoding="utf-8")).get("products", {})
-        except Exception:
-            pass
-    products, failures = fetch_all(queries, previous)
-    if not products:
-        print("no data fetched at all — keeping existing trends.json untouched", file=sys.stderr)
+    fresh = len(products) - sum(1 for pid in failures if pid in products)
+    if fresh == 0:
+        print("no fresh data at all — leaving existing trends.json untouched", file=sys.stderr)
         sys.exit(0 if previous else 1)
+
     out = {
         "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "timeframe": TIMEFRAME,
         "products": products,
     }
     json.dump(out, open(OUT, "w", encoding="utf-8"), indent=1)
-    print(f"wrote {OUT}: {len(products)} products, {len(failures)} failures {failures or ''}")
+    print(f"wrote {OUT}: {len(products)} products ({fresh} fresh), {len(failures)} failures {failures or ''}")
 
 
 if __name__ == "__main__":

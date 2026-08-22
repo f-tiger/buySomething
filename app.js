@@ -133,7 +133,7 @@
           <span class="badge ${lc.cls}">${lc.label}</span>
           ${momentumBadge(p)}
           <span class="badge ${tier.cls}">${tier.label}</span>
-          <span class="badge">${p.compliance.difficulty === "high" ? "🛃 compliance moat" : p.compliance.difficulty === "medium" ? "🛃 medium certs" : "🛃 easy certs"}</span>
+          <span class="badge">🛃 cert complexity: ${p.compliance.difficulty}</span>
         </div>`;
       card.onclick = () => openModal(p);
       grid.appendChild(card);
@@ -194,10 +194,11 @@
       </div>
 
       <div class="modal-section">
-        <h4>🛃 Compliance passport (${p.compliance.difficulty} difficulty)</h4>
+        <h4>🛃 Compliance snapshot (${p.compliance.difficulty} complexity)</h4>
         <p><strong>US:</strong></p><div class="taglist">${certList(p.compliance.us)}</div>
         <p style="margin-top:6px"><strong>EU:</strong></p><div class="taglist">${certList(p.compliance.eu)}</div>
         <p style="margin-top:8px">${p.compliance.note}</p>
+        <p class="spark-note" style="margin-top:8px">Importing this category typically involves the certifications above; requirements vary by state and member state. Verify supplier certificates and your local import requirements independently — as the importer of record, compliance responsibility is yours.</p>
       </div>
 
       <div class="modal-section">
